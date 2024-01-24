@@ -1,25 +1,15 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect } from "react";
 
-function App() {
+const App = () => {
+  // 1. useState weather data const [data, setData] = useState()
+  // 2. fetch data handler (axios with api link, with apiToken)
+  // 3. useEffect with fetch data (city hardcode temporary)
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <div>city name from useState</div>
+      <div>weather image from useState</div>
     </div>
   );
-}
+};
 
 export default App;
