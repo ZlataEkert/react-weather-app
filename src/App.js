@@ -25,10 +25,55 @@ const App = () => {
 
   console.log(data);
 
+  // Get a date
+  const dateBuilder = (timestamp) => {
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    const day = days[timestamp.getDay()];
+    const date = timestamp.getDate();
+    const month = months[timestamp.getMonth()];
+    const year = timestamp.getFullYear();
+    const hours = timestamp.getHours();
+    let minutes = timestamp.getMinutes();
+    if (minutes < 10) {
+      minutes = `0${minutes}`;
+    }
+
+    return `${day} ${date} ${month} ${year} ${hours}:${minutes}`;
+  };
+
   return (
     <div className="container">
-      <input className="input font-bold" placeholder="Enter City..." />
+      <input
+        className="input"
+        placeholder="Enter City..."
+        onInput={(event) => console.log(event.target.value)}
+      />
+      <button>submit</button>
       <div className="text-3xl">
+        <div className="date">{dateBuilder(new Date())}</div>
         Weather
         {loading ? (
           <ImSpinner9 className="text-9xl right-4 animate-spin" />
