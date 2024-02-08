@@ -10,6 +10,7 @@ const App = () => {
   const [location, setLocation] = useState("Kyiv");
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
+  const [animate, setAnimate] = useState(false);
 
   // Fetch the data
   useEffect(() => {
@@ -19,12 +20,12 @@ const App = () => {
     axios
       .get(url)
       .then((res) => {
-        setData(res.data);
+        setTimeout(() => {
+          setData(res.data);
+          setLoading(false);
+        }, 500);
       })
-      .catch((e) => console.log(e))
-      .finally(() => {
-        setLoading(false);
-      });
+      .catch((e) => console.log(e));
   }, [location]);
 
   console.log(data);
@@ -41,6 +42,14 @@ const App = () => {
 
     // select input
     const input = document.querySelector("input");
+    // if input value is empty
+    if (input.value === "") {
+      setAnimate(true);
+      setTimeout(() => {
+        setAnimate(false);
+      }, 1000);
+    }
+
     // clear input
     input.value = "";
 
@@ -89,12 +98,14 @@ const App = () => {
   return (
     <div className="w-full h-screen bg-gradient-to-b from-purple-900 to-blue-500 bg-no-repeat bg-cover bg-center flex flex-col items-center justify-center px-4 lg:px-0">
       {/*{errorMsg && <div>{`${errorMsg.res.data.message}`}</div>}*/}
-      <form className="h-16 bg-black/40 w-full max-w-[450px] rounded-full backdrop-blur-[32px] mb-8">
+      <form
+        className={`${animate ? "animate-pulse" : "animate-none"} h-16 bg-black/40 w-full max-w-[450px] rounded-full backdrop-blur-[32px] mb-8`}
+      >
         <div className="h-full relative flex items-center justify-between p-2">
           <input
             className="flex-1 bg-transparent outline-none placeholder:text-white text-white text-[17px] font-light pl-6 h-full"
             type="text"
-            placeholder="Enter City..."
+            placeholder="Search by city or country..."
             onChange={(e) => handleInput(e)}
           />
           <button
