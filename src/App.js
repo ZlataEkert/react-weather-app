@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { ImSpinner9 } from "react-icons/im";
 import { IoMdSearch } from "react-icons/io";
@@ -11,6 +11,7 @@ const App = () => {
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [animate, setAnimate] = useState(false);
+  const [errorMsg, setErrorMsg] = useState({ value: "", type: "local" });
 
   // Fetch the data
   useEffect(() => {
@@ -25,13 +26,36 @@ const App = () => {
           setLoading(false);
         }, 500);
       })
-      .catch((e) => console.log(e));
+      .catch((e) => {
+        setLoading(false);
+        setErrorMsg({ value: e.response.data.message, type: "remote" });
+      });
   }, [location]);
 
-  console.log(data);
+  console.log(location);
+
+  // Error message
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (errorMsg.type === "remote") {
+        setErrorMsg({ value: "", type: "local" });
+      }
+    }, 3000);
+
+    //  Clear timer
+    return () => clearTimeout(timer);
+  }, [errorMsg]);
 
   const handleInput = (e) => {
-    setInputValue(e.target.value);
+    const reg = /^[a-zA-Z]+$/;
+    console.log(reg.test(e.target.value));
+    if (reg.test(e.target.value)) {
+      setInputValue(e.target.value);
+      setErrorMsg({ value: "", type: "local" });
+    } else {
+      setInputValue("");
+      setErrorMsg({ value: "Enter correct city or country", type: "local" });
+    }
   };
 
   const handleSubmit = (e) => {
@@ -40,17 +64,17 @@ const App = () => {
       setLocation(inputValue);
     }
 
-    // select input
+    // Select input
     const input = document.querySelector("input");
     // if input value is empty
     if (input.value === "") {
       setAnimate(true);
       setTimeout(() => {
         setAnimate(false);
-      }, 1000);
+      }, 500);
     }
 
-    // clear input
+    // Clear input
     input.value = "";
 
     e.preventDefault();
@@ -97,9 +121,11 @@ const App = () => {
 
   return (
     <div className="w-full h-screen bg-gradient-to-b from-purple-900 to-blue-500 bg-no-repeat bg-cover bg-center flex flex-col items-center justify-center px-4 lg:px-0">
-      {/*{errorMsg && <div>{`${errorMsg.res.data.message}`}</div>}*/}
+      {errorMsg.value && (
+        <div className="w-full max-w-[90vw] lg:max-w-[450px] bg-[#db2777] text-white absolute top-2 lg:top-2 p-4 capitalize backdrop-blur-[32px] rounded-[32px]">{`${errorMsg.value}`}</div>
+      )}
       <form
-        className={`${animate ? "animate-pulse" : "animate-none"} h-16 bg-black/40 w-full max-w-[450px] rounded-full backdrop-blur-[32px] mb-8`}
+        className={`${animate ? "animate-shake" : "animate-none"} h-16 bg-black/40 w-full max-w-[450px] rounded-full backdrop-blur-[32px] mb-8`}
       >
         <div className="h-full relative flex items-center justify-between p-2">
           <input
@@ -117,7 +143,7 @@ const App = () => {
         </div>
       </form>
       {/*  card */}
-      <div className="w-full max-w-[450px] bg-black/40 min-h-[584px] text-white backdrop-blur-[32px] rounded-[32px] py-12 px-6">
+      <div className="w-full max-w-[450px] bg-black/40 min-h-[450px] text-white backdrop-blur-[32px] rounded-[32px] py-2 px-8">
         {loading ? (
           <div className="w-full h-full flex justify-center items-center">
             <ImSpinner9 className="text-white text-6xl animate-spin" />
@@ -126,18 +152,16 @@ const App = () => {
           data && (
             <div>
               {/*  card top */}
-              <div className="flex items-center gap-x-5">
-                {data && (
-                  <div>
-                    <img
-                      src={`https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`}
-                      alt="icon-weather"
-                    />
-                  </div>
-                )}
+              <div className="flex items-center gap-x-6">
+                <div>
+                  <img
+                    src={`https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`}
+                    alt="icon-weather"
+                  />
+                </div>
                 <div>
                   {/*  country name */}
-                  <div className="text-3xl font-semibold">
+                  <div className="text-3xl font-semibold py-2">
                     {data.name}, {data.sys.country}
                   </div>
                   {/* date */}
@@ -146,18 +170,18 @@ const App = () => {
               </div>
 
               {/*  card body */}
-              <div className="my-20">
+              <div className="my-15">
                 <div className="flex justify-center items-center">
                   {/* temp */}
-                  <div className="text-center text-[100px] leading-none">{`${data.main.temp.toFixed()}℃`}</div>
+                  <div className="text-center text-[90px] leading-none py-10">{`${data.main.temp.toFixed()}℃`}</div>
                 </div>
                 {/*  weather desc*/}
-                <div className="capitalize text-center py-5">
+                <div className="capitalize text-center">
                   {data.weather[0].description}
                 </div>
               </div>
               {/*  card bottom */}
-              <div className="max-w-[378px] mx-auto flex flex-col gap-y-6">
+              <div className="max-w-[378px] mx-auto flex flex-col gap-y-4 py-8">
                 <div className="flex justify-between">
                   <div className="flex items-center gap-x-2">
                     {/*  icon */}
@@ -166,7 +190,7 @@ const App = () => {
                     </div>
                     <div>
                       Visibility{" "}
-                      <span className="ml-2">{data.visibility / 1000} km</span>
+                      <span className="ml-2">{data.visibility} m</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-x-2">
