@@ -2,37 +2,43 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { ImSpinner9 } from "react-icons/im";
 import { IoMdSearch } from "react-icons/io";
-import { BsWater, BsEye, BsThermometer, BsWind } from "react-icons/bs";
+import { BsWater, BsClouds, BsThermometer, BsWind } from "react-icons/bs";
 
 const App = () => {
   const APIkey = "f4adf741a7b362beb26a9614ee5d1025";
   const [data, setData] = useState(null);
-  const [location, setLocation] = useState("Kyiv");
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [animate, setAnimate] = useState(false);
   const [errorMsg, setErrorMsg] = useState({ value: "", type: "local" });
+  const inputRef = useRef(null);
+
+  const fetchData = async (location = "Kyiv") => {
+    setLoading(true);
+
+    try {
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${APIkey}`;
+      const res = await axios.get(url);
+      inputRef.current.value = "";
+      setTimeout(() => {
+        setData(res.data);
+        setLoading(false);
+      }, 500);
+    } catch (e) {
+      setLoading(false);
+      setErrorMsg({ value: e.response.data.message, type: "remote" });
+      // inputRef.current.value = "";
+    } finally {
+      inputRef.current.focus();
+    }
+  };
 
   // Fetch the data
   useEffect(() => {
-    setLoading(true);
-
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${APIkey}`;
-    axios
-      .get(url)
-      .then((res) => {
-        setTimeout(() => {
-          setData(res.data);
-          setLoading(false);
-        }, 500);
-      })
-      .catch((e) => {
-        setLoading(false);
-        setErrorMsg({ value: e.response.data.message, type: "remote" });
-      });
-  }, [location]);
-
-  console.log(location);
+    fetchData().then(() => {
+      console.log("Data fetched successfully!");
+    });
+  }, []);
 
   // Error message
   useEffect(() => {
@@ -48,7 +54,6 @@ const App = () => {
 
   const handleInput = (e) => {
     const reg = /^[a-zA-Z]+$/;
-    console.log(reg.test(e.target.value));
     if (reg.test(e.target.value)) {
       setInputValue(e.target.value);
       setErrorMsg({ value: "", type: "local" });
@@ -59,23 +64,26 @@ const App = () => {
   };
 
   const handleSubmit = (e) => {
+    console.log("handleSubmit");
     // if input is not empty
     if (inputValue !== "") {
-      setLocation(inputValue);
+      fetchData(inputValue);
     }
 
-    // Select input
-    const input = document.querySelector("input");
     // if input value is empty
-    if (input.value === "") {
+    if (inputRef.current.value === "") {
       setAnimate(true);
       setTimeout(() => {
         setAnimate(false);
       }, 500);
+    } else {
+      // Clear input
+      if (errorMsg.type !== "local") {
+        // inputRef.current.value = "";
+        // setInputValue("");
+        inputRef.current.focus();
+      }
     }
-
-    // Clear input
-    input.value = "";
 
     e.preventDefault();
   };
@@ -122,7 +130,7 @@ const App = () => {
   return (
     <div className="w-full h-screen bg-gradient-to-b from-purple-900 to-blue-500 bg-no-repeat bg-cover bg-center flex flex-col items-center justify-center px-4 lg:px-0">
       {errorMsg.value && (
-        <div className="w-full max-w-[90vw] lg:max-w-[450px] bg-[#db2777] text-white absolute top-2 lg:top-2 p-4 capitalize backdrop-blur-[32px] rounded-[32px]">{`${errorMsg.value}`}</div>
+        <div className="w-full max-w-[450px] lg:max-w-[450px] bg-[#db2777] text-white absolute top-2 lg:top-2 p-4 capitalize backdrop-blur-[32px] rounded-[32px]">{`${errorMsg.value}`}</div>
       )}
       <form
         className={`${animate ? "animate-shake" : "animate-none"} h-16 bg-black/40 w-full max-w-[450px] rounded-full backdrop-blur-[32px] mb-8`}
@@ -131,11 +139,13 @@ const App = () => {
           <input
             className="flex-1 bg-transparent outline-none placeholder:text-white text-white text-[17px] font-light pl-6 h-full"
             type="text"
+            ref={inputRef}
             placeholder="Search by city or country..."
             onChange={(e) => handleInput(e)}
           />
           <button
             className="bg-[#db2777] hover:bg-[#be185d] w-20 h-12 rounded-full flex justify-center items-center transition"
+            type="submit"
             onClick={(e) => handleSubmit(e)}
           >
             <IoMdSearch className="text-2xl text-white" />
@@ -186,11 +196,11 @@ const App = () => {
                   <div className="flex items-center gap-x-2">
                     {/*  icon */}
                     <div>
-                      <BsEye />
+                      <BsClouds />
                     </div>
                     <div>
-                      Visibility{" "}
-                      <span className="ml-2">{data.visibility} m</span>
+                      Cloudiness{" "}
+                      <span className="ml-2">{data.clouds.all} %</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-x-2">
